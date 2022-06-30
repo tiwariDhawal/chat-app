@@ -4,8 +4,7 @@ import { Container, Grid, Row, Panel, Col, Button, Icon, Alert } from 'rsuite';
 import { auth, database } from '../misc/firebase';
 
 const SignIn = () => {
-  const signInWithProvider = async (provider) => {
-    // console.log(result);
+  const signInWithProvider = async provider => {
     try {
       const { additionalUserInfo, user } = await auth.signInWithPopup(provider);
 
@@ -16,7 +15,7 @@ const SignIn = () => {
         });
       }
 
-      Alert.success("Signed in", 4000);
+      Alert.success('Signed in', 4000);
     } catch (err) {
       Alert.error(err.message, 4000);
     }
@@ -25,9 +24,11 @@ const SignIn = () => {
   const onFacebookSignIn = () => {
     signInWithProvider(new firebase.auth.FacebookAuthProvider());
   };
+
   const onGoogleSignIn = () => {
     signInWithProvider(new firebase.auth.GoogleAuthProvider());
   };
+
   return (
     <Container>
       <Grid className="mt-page">
@@ -55,4 +56,5 @@ const SignIn = () => {
     </Container>
   );
 };
+
 export default SignIn;
