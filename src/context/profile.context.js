@@ -1,14 +1,14 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import firebase from 'firebase/app';
-import { auth, database } from '../misc/firebase';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import firebase from "firebase/app";
+import { auth, database } from "../misc/firebase";
 
 export const isOfflineForDatabase = {
-  state: 'offline',
+  state: "offline",
   last_changed: firebase.database.ServerValue.TIMESTAMP,
 };
 
 const isOnlineForDatabase = {
-  state: 'online',
+  state: "online",
   last_changed: firebase.database.ServerValue.TIMESTAMP,
 };
 
@@ -22,12 +22,12 @@ export const ProfileProvider = ({ children }) => {
     let userRef;
     let userStatusRef;
 
-    const authUnsub = auth.onAuthStateChanged(authObj => {
+    const authUnsub = auth.onAuthStateChanged((authObj) => {
       if (authObj) {
         userStatusRef = database.ref(`/status/${authObj.uid}`);
         userRef = database.ref(`/profiles/${authObj.uid}`);
 
-        userRef.on('value', snap => {
+        userRef.on("value", (snap) => {
           const { name, createdAt, avatar } = snap.val();
 
           const data = {
@@ -42,7 +42,7 @@ export const ProfileProvider = ({ children }) => {
           setIsLoading(false);
         });
 
-        database.ref('.info/connected').on('value', snapshot => {
+        database.ref(".info/connected").on("value", (snapshot) => {
           if (!!snapshot.val() === false) {
             return;
           }
@@ -63,7 +63,7 @@ export const ProfileProvider = ({ children }) => {
           userStatusRef.off();
         }
 
-        database.ref('.info/connected').off();
+        database.ref(".info/connected").off();
 
         setProfile(null);
         setIsLoading(false);
@@ -73,7 +73,7 @@ export const ProfileProvider = ({ children }) => {
     return () => {
       authUnsub();
 
-      database.ref('.info/connected').off();
+      database.ref(".info/connected").off();
 
       if (userRef) {
         userRef.off();

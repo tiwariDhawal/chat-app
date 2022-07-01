@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from "react";
 import {
   Button,
   Icon,
@@ -9,21 +9,22 @@ import {
   FormGroup,
   Schema,
   Alert,
-} from 'rsuite';
-import firebase from 'firebase/app';
-import { useModalState } from '../misc/custom-hooks';
-import { database } from '../misc/firebase';
+} from "rsuite";
+import firebase from "firebase/app";
+import { useModalState } from "../misc/custom-hooks";
+import { database } from "../misc/firebase";
+import { auth } from "../misc/firebase";
 
 const { StringType } = Schema.Types;
 
 const model = Schema.Model({
-  name: StringType().isRequired('Chat name is required'),
-  description: StringType().isRequired('Description is required'),
+  name: StringType().isRequired("Chat name is required"),
+  description: StringType().isRequired("Description is required"),
 });
 
 const INITIAL_FORM = {
-  name: '',
-  description: '',
+  name: "",
+  description: "",
 };
 
 const CreateRoomBtnModal = () => {
@@ -33,7 +34,7 @@ const CreateRoomBtnModal = () => {
   const [isLoading, setIsLoading] = useState(false);
   const formRef = useRef();
 
-  const onFormChange = useCallback(value => {
+  const onFormChange = useCallback((value) => {
     setFormValue(value);
   }, []);
 
@@ -47,10 +48,14 @@ const CreateRoomBtnModal = () => {
     const newRoomdata = {
       ...formValue,
       createdAt: firebase.database.ServerValue.TIMESTAMP,
+
+      admins: {
+        [auth.currentUser.uid]: true,
+      },
     };
 
     try {
-      await database.ref('rooms').push(newRoomdata);
+      await database.ref("rooms").push(newRoomdata);
 
       Alert.info(`${formValue.name} has been created`, 4000);
 
