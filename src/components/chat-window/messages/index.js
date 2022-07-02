@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useParams } from "react-router";
-import { Alert } from "rsuite";
-import { database, auth, storage } from "../../../misc/firebase";
-import { transformToArrWithId } from "../../../misc/helpers";
-import MessageItem from "./MessageItem";
+/* eslint-disable consistent-return */
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router';
+import { Alert } from 'rsuite';
+import { database, auth, storage } from '../../../misc/firebase';
+import { transformToArrWithId, groupBy } from '../../../misc/helpers';
+import MessageItem from './MessageItem';
 
 const Messages = () => {
   const { chatId } = useParams();
@@ -13,36 +14,36 @@ const Messages = () => {
   const canShowMessages = messages && messages.length > 0;
 
   useEffect(() => {
-    const messagesRef = database.ref("/messages");
+    const messagesRef = database.ref('/messages');
 
     messagesRef
-      .orderByChild("roomId")
+      .orderByChild('roomId')
       .equalTo(chatId)
-      .on("value", (snap) => {
+      .on('value', snap => {
         const data = transformToArrWithId(snap.val());
 
         setMessages(data);
       });
 
     return () => {
-      messagesRef.off("value");
+      messagesRef.off('value');
     };
   }, [chatId]);
 
   const handleAdmin = useCallback(
-    async (uid) => {
+    async uid => {
       const adminsRef = database.ref(`/rooms/${chatId}/admins`);
 
       let alertMsg;
 
-      await adminsRef.transaction((admins) => {
+      await adminsRef.transaction(admins => {
         if (admins) {
           if (admins[uid]) {
             admins[uid] = null;
-            alertMsg = "Admin permission removed";
+            alertMsg = 'Admin permission removed';
           } else {
             admins[uid] = true;
-            alertMsg = "Admin permission granted";
+            alertMsg = 'Admin permission granted';
           }
         }
 
@@ -54,18 +55,18 @@ const Messages = () => {
     [chatId]
   );
 
-  const handleLike = useCallback(async (msgId) => {
+  const handleLike = useCallback(async msgId => {
     const { uid } = auth.currentUser;
     const messageRef = database.ref(`/messages/${msgId}`);
 
     let alertMsg;
 
-    await messageRef.transaction((msg) => {
+    await messageRef.transaction(msg => {
       if (msg) {
         if (msg.likes && msg.likes[uid]) {
           msg.likeCount -= 1;
           msg.likes[uid] = null;
-          alertMsg = "Like removed";
+          alertMsg = 'Like removed';
         } else {
           msg.likeCount += 1;
 
@@ -74,7 +75,7 @@ const Messages = () => {
           }
 
           msg.likes[uid] = true;
-          alertMsg = "Like added";
+          alertMsg = 'Like added';
         }
       }
 
@@ -87,7 +88,7 @@ const Messages = () => {
   const handleDelete = useCallback(
     async (msgId, file) => {
       // eslint-disable-next-line no-alert
-      if (!window.confirm("Delete this message?")) {
+      if (!window.confirm('Delete this message?')) {
         return;
       }
 
@@ -111,35 +112,57 @@ const Messages = () => {
       try {
         await database.ref().update(updates);
 
-        Alert.info("Message has been deleted");
+        Alert.info('Message has been deleted');
       } catch (err) {
         return Alert.error(err.message);
       }
+
       if (file) {
         try {
-          const fileRef = await storage.refFromURL(file.url);
+          const fileRef = storage.refFromURL(file.url);
           await fileRef.delete();
-        } catch (error) {
-          Alert.error(error.message);
+        } catch (err) {
+          Alert.error(err.message);
         }
       }
     },
     [chatId, messages]
   );
 
+  const renderMessages = () => {
+    const groups = groupBy(messages, item =>
+      new Date(item.createdAt).toDateString()
+    );
+
+    const items = [];
+
+    Object.keys(groups).forEach(date => {
+      items.push(
+        <li key={date} className="text-center mb-1 padded">
+          {date}
+        </li>
+      );
+
+      const msgs = groups[date].map(msg => (
+        <MessageItem
+          key={msg.id}
+          message={msg}
+          handleAdmin={handleAdmin}
+          handleLike={handleLike}
+          handleDelete={handleDelete}
+        />
+      ));
+
+      items.push(...msgs);
+    });
+
+    return items;
+  };
+
   return (
     <ul className="msg-list custom-scroll">
       {isChatEmpty && <li>No messages yet</li>}
-      {canShowMessages &&
-        messages.map((msg) => (
-          <MessageItem
-            key={msg.id}
-            message={msg}
-            handleAdmin={handleAdmin}
-            handleLike={handleLike}
-            handleDelete={handleDelete}
-          />
-        ))}
+      {canShowMessages && renderMessages()}
     </ul>
   );
 };
