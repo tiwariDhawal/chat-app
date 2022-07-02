@@ -1,22 +1,33 @@
-import React, { memo } from 'react';
-import TimeAgo from 'timeago-react';
-import { Button } from 'rsuite';
-import ProfileAvatar from '../../ProfileAvatar';
-import ProfileInfoBtnModal from './ProfileInfoBtnModal';
-import PresenceDot from '../../PresenceDot';
-import { useCurrentRoom } from '../../../context/current-room.context';
-import { auth } from '../../../misc/firebase';
-import { useHover, useMediaQuery } from '../../../misc/custom-hooks';
-import IconBtnControl from './IconBtnControl';
+import React, { memo } from "react";
+import TimeAgo from "timeago-react";
+import { Button } from "rsuite";
+import ProfileAvatar from "../../ProfileAvatar";
+import ProfileInfoBtnModal from "./ProfileInfoBtnModal";
+import PresenceDot from "../../PresenceDot";
+import { useCurrentRoom } from "../../../context/current-room.context";
+import { auth } from "../../../misc/firebase";
+import { useHover, useMediaQuery } from "../../../misc/custom-hooks";
+import IconBtnControl from "./IconBtnControl";
+import ImgBtnModal from "./ImgBtnModal";
 
+const renderFileMessage = (file) => {
+  if (file.contentType.includes("image")) {
+    return (
+      <div className="height-20">
+        <ImgBtnModal src={file.url} fileName={file.name} />
+      </div>
+    );
+  }
+  return <a href={file.url}>Download {file.name}</a>;
+};
 const MessageItem = ({ message, handleAdmin, handleLike, handleDelete }) => {
-  const { author, createdAt, text, likes, likeCount } = message;
+  const { author, createdAt, text, file, likes, likeCount } = message;
 
   const [selfRef, isHovered] = useHover();
-  const isMobile = useMediaQuery('(max-width: 992px)');
+  const isMobile = useMediaQuery("(max-width: 992px)");
 
-  const isAdmin = useCurrentRoom(v => v.isAdmin);
-  const admins = useCurrentRoom(v => v.admins);
+  const isAdmin = useCurrentRoom((v) => v.isAdmin);
+  const admins = useCurrentRoom((v) => v.admins);
 
   const isMsgAuthorAdmin = admins.includes(author.uid);
   const isAuthor = auth.currentUser.uid === author.uid;
@@ -27,7 +38,7 @@ const MessageItem = ({ message, handleAdmin, handleLike, handleDelete }) => {
 
   return (
     <li
-      className={`padded mb-1 cursor-pointer ${isHovered ? 'bg-black-02' : ''}`}
+      className={`padded mb-1 cursor-pointer ${isHovered ? "bg-black-02" : ""}`}
       ref={selfRef}
     >
       <div className="d-flex align-items-center font-bolder mb-1">
@@ -48,8 +59,8 @@ const MessageItem = ({ message, handleAdmin, handleLike, handleDelete }) => {
           {canGrantAdmin && (
             <Button block onClick={() => handleAdmin(author.uid)} color="blue">
               {isMsgAuthorAdmin
-                ? 'Remove admin permission'
-                : 'Give admin in this room'}
+                ? "Remove admin permission"
+                : "Give admin in this room"}
             </Button>
           )}
         </ProfileInfoBtnModal>
@@ -59,7 +70,7 @@ const MessageItem = ({ message, handleAdmin, handleLike, handleDelete }) => {
         />
 
         <IconBtnControl
-          {...(isLiked ? { color: 'red' } : {})}
+          {...(isLiked ? { color: "red" } : {})}
           isVisible={canShowIcons}
           iconName="heart"
           tooltip="Like this message"
@@ -77,7 +88,8 @@ const MessageItem = ({ message, handleAdmin, handleLike, handleDelete }) => {
       </div>
 
       <div>
-        <span className="word-breal-all">{text}</span>
+        {text && <span className="word-breal-all">{text}</span>}
+        {file && renderFileMessage(file)}
       </div>
     </li>
   );

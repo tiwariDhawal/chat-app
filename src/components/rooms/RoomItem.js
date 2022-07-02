@@ -1,6 +1,6 @@
-import React from 'react';
-import TimeAgo from 'timeago-react';
-import ProfileAvatar from '../ProfileAvatar';
+import React from "react";
+import TimeAgo from "timeago-react";
+import ProfileAvatar from "../ProfileAvatar";
 
 const RoomItem = ({ room }) => {
   const { createdAt, name, lastMessage } = room;
@@ -30,7 +30,7 @@ const RoomItem = ({ room }) => {
 
             <div className="text-disappear ml-2">
               <div className="italic">{lastMessage.author.name}</div>
-              <span>{lastMessage.text}</span>
+              <span>{lastMessage.text || lastMessage.file.name}</span>
             </div>
           </>
         ) : (
