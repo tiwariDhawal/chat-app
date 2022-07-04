@@ -40,6 +40,14 @@
       }
       
     },
+      "fcm_tokens":{
+       "$user_id":{
+        ".read":false,
+        ".write":"newData.val()===auth.uid"
+          
+      }
+      
+    },
     ".read": false,
     ".write": false
   }
