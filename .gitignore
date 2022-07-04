@@ -24,7 +24,4 @@ yarn-error.log*
 
 .firebase
 
-.github
 
-#misc file also excluded it contains database info
-firebase.js
